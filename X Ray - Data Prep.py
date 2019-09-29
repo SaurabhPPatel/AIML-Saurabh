@@ -31,26 +31,28 @@ def xml_extract(path):
                 for f in root.iter('AbstractText'):
                     # image and findings list
                     if f.get('Label') == 'FINDINGS':
-                        finding = f.text
-                        img_findings[image_id]=list()
-                        img_findings[image_id].append(f.text)
+                        
+                        img_findings[image_id]=(f.text)
+                        
                     # image and comparison list    
                     if f.get('Label') == 'COMPARISON':
-                        comparison = f.text
-                        img_comparison[image_id]=list()
-                        img_comparison[image_id].append(f.text)
+                        
+                        img_comparison[image_id]=(f.text)
+                        
                     # image and indication list    
                     if f.get('Label') == 'INDICATION':
-                        indication = f.text
-                        img_indication[image_id]=list()
-                        img_indication[image_id].append(f.text)
+                        
+                        img_indication[image_id]=(f.text)
+                        
                     # image and impressions list    
                     if f.get('Label') == 'IMPRESSION':
-                        impression = f.text
-                        img_impression[image_id]=list()
-                        img_impression[image_id].append(f.text)
+                        
+                        img_impression[image_id]=(f.text)
+                        
     return(img_findings,img_comparison,img_indication,img_impression)
     
+
+
 
 ### clean descriptions
 def clean_descriptions(descriptions):
@@ -90,12 +92,6 @@ clean_descriptions(findings)
 
 ### convert descriptions to vocabulary
 
-##### check 
-imp = impression['CXR1000_IM-0003-1001']
-imp
-imp[0]
-### check
-
 def to_vocabulary(descriptions):
     desc = set()
     for key in descriptions.keys():
@@ -105,13 +101,55 @@ def to_vocabulary(descriptions):
             [desc.update(d.split()) for d in descriptions[key]]
     return desc
 
+## vocab is a set of impression findings and indication as words
 vocab_impression = to_vocabulary(impression)
 vocab_findings = to_vocabulary(findings)
 vocab_indication = to_vocabulary(indication)
 
+def save_txt(desc,filename):
+    line = list()
+    for key,value in desc.items():
+        if not value[0] is None:
+            line.append(key + ' ' + value[0])
+            data = '\n'.join(line)
+            file = open(filename,'w')
+            file.write(data)
+            file.close()
+
+os.chdir('D:\Great Learning\Capstone\Chest Xray')
+
+#os.curdir()
+
+save_txt(impression,'impression.txt')
+
+save_txt(findings,'findings.txt')
+
+save_txt(indication,'indication.txt')
+
+### list of images
+image_ids = list(impression.keys())
+
+### split images into train and test and validation samples
+
+import random
+random.shuffle(image_ids)
+
+train_image_ids = image_ids[:5229]
+bal_image_ids = image_ids[5229:]
+
+test_image_ids = bal_image_ids[:1121]
+val_image_ids = bal_image_ids[1121:]
+
+import pandas as pd
+
+df_imp = pd.DataFrame(list(impression.items()),columns = ['image_id','impression'])
 
 
+df_findings = pd.DataFrame()
 
+for key,value in findings.items():
+    df_findings['image_id'] = key
+    df_findings['findings'] = value[0]
 
 
 
